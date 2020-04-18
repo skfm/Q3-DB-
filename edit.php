@@ -15,32 +15,16 @@ $message_data = [];
 // GET値からidが渡された場合は編集画面を表示、POST値からidが渡された場合は内容を更新する
 if( !empty($_GET['message_id']) && empty($_POST['message_id']) ) {
 
-	// 投稿を取得するコード
-  $message_id = $_GET['message_id'];
-
-  // データベースに接続
-  $mysqli = new mysqli( DB_HOST, DB_USER, DB_PASS, DB_NAME);
-
-  // 接続エラーの確認
-  if( $mysqli->connect_errno ) {
-    $error_message[] = 'データの接続に失敗しました。 エラー番号 '.$mysqli->connect_errno.' : '.$mysqli->connect_error;
+  $res = getEditData();
+  if( $res ) {
+    $message_data = $res->fetch_assoc();
   } else {
-
-    $sql = "SELECT id, name, message, post_date FROM message WHERE id = $message_id";
-    $res = $mysqli->query($sql);
-
-    if( $res ) {
-      $message_data = $res->fetch_assoc();
-    } else {
-      header("Location: http://localhost/php/rotoeggs_ex3/index.php");
-    }
-
-    // データベースの接続を閉じる
-    $mysqli->close();
+    header("Location: http://localhost/php/rotoeggs_ex3/index.php");
   }
 
 } elseif ( !empty($_POST['message_id']) ) {
 
+  // 編集フォームに値が入力されているか
   if (!($_POST['text'])) {
     array_push($error_messages, '本文を入力してください。');
   } else {
@@ -53,6 +37,7 @@ if( !empty($_GET['message_id']) && empty($_POST['message_id']) ) {
     $name = "名無し";
   }
 
+  // 編集フォームの入力が正常な場合、DBに登録
   if (isset($name) && isset($message)) {
 
     $message_id = $_POST['message_id'];
@@ -70,13 +55,36 @@ if( !empty($_GET['message_id']) && empty($_POST['message_id']) ) {
   		$sql = "UPDATE message set name = '$name', message = '$message', edit_date = '$edit_date' WHERE id = $message_id";
 
   		$res = $mysqli->query($sql);
-    }
-  		$mysqli->close();
 
-    if( $res ) {
-		  header("Location: http://localhost/php/rotoeggs_ex3/index.php");
-	  }
+      $mysqli->close();
+    }
   }
+
+  if( $res ) {
+    header("Location: http://localhost/php/rotoeggs_ex3/index.php");
+  }
+}
+
+
+function getEditData() {
+  // 投稿を取得するコード
+  $message_id = $_GET['message_id'];
+
+  // データベースに接続
+  $mysqli = new mysqli( DB_HOST, DB_USER, DB_PASS, DB_NAME);
+
+  // 接続エラーの確認
+  if( $mysqli->connect_errno ) {
+    $error_message[] = 'データの接続に失敗しました。 エラー番号 '.$mysqli->connect_errno.' : '.$mysqli->connect_error;
+  } else {
+
+    $sql = "SELECT id, name, message, post_date FROM message WHERE id = $message_id";
+    $res = $mysqli->query($sql);
+
+    // データベースの接続を閉じる
+    $mysqli->close();
+  }
+  return $res;
 }
 
 ?>
