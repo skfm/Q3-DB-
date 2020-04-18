@@ -58,6 +58,62 @@ if (isset($name) && isset($message)) {
   header('Location: ./');
 }
 
+
+// 投稿の名前で検索する
+if (isset($_GET['search'])) {
+
+  $res = getSearchData();
+
+  if( $res ) {
+    $message_array = $res->fetch_all(MYSQLI_ASSOC);
+  }
+}
+
+function getSearchData() {
+  // データベースに接続
+  $mysqli = new mysqli( DB_HOST, DB_USER, DB_PASS, DB_NAME);
+
+  // 接続エラーの確認
+  if( $mysqli->connect_errno ) {
+    $error_message[] = 'データの読み込みに失敗しました。 エラー番号 '.$mysqli->connect_errno.' : '.$mysqli->connect_error;
+  } else {
+    $search = $_GET['search'];
+    $sql = "SELECT * FROM message where name LIKE '%$search%' ORDER BY post_date DESC";
+    $res = $mysqli->query($sql);
+    $mysqli->close();
+  }
+
+  return $res;
+}
+
+// 投稿日時でソートする
+if (isset($_GET['post_date_sort'])) {
+  $res = getPostDateSort();
+
+  if( $res ) {
+    $message_array = $res->fetch_all(MYSQLI_ASSOC);
+  }
+
+}
+
+function getPostDateSort() {
+  $typeOfSort = $_GET['post_date_sort'] == 'asc' ? 'ASC':'DESC';
+
+  $mysqli = new mysqli( DB_HOST, DB_USER, DB_PASS, DB_NAME);
+  // 接続エラーの確認
+  if( $mysqli->connect_errno ) {
+    $error_message[] = 'データの読み込みに失敗しました。 エラー番号 '.$mysqli->connect_errno.' : '.$mysqli->connect_error;
+  } else {
+
+    $sql = "SELECT * FROM message ORDER BY post_date $typeOfSort";
+    $res = $mysqli->query($sql);
+    $mysqli->close();
+  }
+
+  return $res;
+}
+
+// DBの全データを取得
 // データベースに接続
 $mysqli = new mysqli( DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
@@ -75,77 +131,6 @@ if( $mysqli->connect_errno ) {
 
   // データベースの接続を閉じる
   $mysqli->close();
-}
-
-
-// 投稿の名前で検索する
-if (isset($_GET['search'])) {
-
-  // データベースに接続
-  $mysqli = new mysqli( DB_HOST, DB_USER, DB_PASS, DB_NAME);
-
-  // 接続エラーの確認
-  if( $mysqli->connect_errno ) {
-    $error_message[] = 'データの読み込みに失敗しました。 エラー番号 '.$mysqli->connect_errno.' : '.$mysqli->connect_error;
-  } else {
-    $search = $_GET['search'];
-    $sql = "SELECT * FROM message where name LIKE '%$search%' ORDER BY post_date DESC";
-    $res = $mysqli->query($sql);
-
-    if( $res ) {
-      $message_array = $res->fetch_all(MYSQLI_ASSOC);
-    }
-
-    $mysqli->close();
-  }
-}
-
-// 投稿日時でソートする
-if (isset($_GET['post_date_sort'])) {
-
-  switch ($_GET['post_date_sort']) {
-
-    case 'asc':
-      // データベースに接続
-      $mysqli = new mysqli( DB_HOST, DB_USER, DB_PASS, DB_NAME);
-      // 接続エラーの確認
-      if( $mysqli->connect_errno ) {
-        $error_message[] = 'データの読み込みに失敗しました。 エラー番号 '.$mysqli->connect_errno.' : '.$mysqli->connect_error;
-      } else {
-
-        $sql = "SELECT * FROM message ORDER BY post_date ASC";
-        $res = $mysqli->query($sql);
-
-        if( $res ) {
-          $message_array = $res->fetch_all(MYSQLI_ASSOC);
-        }
-
-        $mysqli->close();
-      }
-      break;
-
-    case 'desc':
-      $mysqli = new mysqli( DB_HOST, DB_USER, DB_PASS, DB_NAME);
-      // 接続エラーの確認
-      if( $mysqli->connect_errno ) {
-        $error_message[] = 'データの読み込みに失敗しました。 エラー番号 '.$mysqli->connect_errno.' : '.$mysqli->connect_error;
-      } else {
-
-        $sql = "SELECT * FROM message ORDER BY post_date DESC";
-        $res = $mysqli->query($sql);
-
-        if( $res ) {
-          $message_array = $res->fetch_all(MYSQLI_ASSOC);
-        }
-
-        $mysqli->close();
-      }
-      break;
-
-    default:
-      header("Location: http://localhost/php/pra_php/index.php");
-      break;
-  }
 }
 
 ?>
