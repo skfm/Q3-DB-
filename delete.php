@@ -15,7 +15,25 @@ $message_data = [];
 // GET値からidが渡された場合は削除確認画面を表示、POST値からidが渡された場合は内容を削除する
 if( !empty($_GET['message_id']) && empty($_POST['message_id']) ) {
 
-	// 投稿を取得するコード
+  $res = getDeleteData();
+
+  if( $res ) {
+    $message_data = $res->fetch_assoc();
+  } else {
+    header("Location: http://localhost/php/rotoeggs_ex3/index.php");
+  }
+
+} elseif ( !empty($_POST['message_id']) ) {
+
+  $res = DeleteData();
+  
+  if( $res ) {
+	  header("Location: http://localhost/php/rotoeggs_ex3/index.php");
+  }
+}
+
+function getDeleteData() {
+  // 投稿を取得するコード
   $message_id = $_GET['message_id'];
 
   // データベースに接続
@@ -29,18 +47,13 @@ if( !empty($_GET['message_id']) && empty($_POST['message_id']) ) {
     $sql = "SELECT id, name, message, post_date FROM message WHERE id = $message_id";
     $res = $mysqli->query($sql);
 
-    if( $res ) {
-      $message_data = $res->fetch_assoc();
-    } else {
-      header("Location: http://localhost/php/rotoeggs_ex3/index.php");
-    }
-
     // データベースの接続を閉じる
     $mysqli->close();
   }
+  return $res;
+}
 
-} elseif ( !empty($_POST['message_id']) ) {
-
+function DeleteData() {
   $message_id = $_POST['message_id'];
 
   // データベースに接続
@@ -52,14 +65,11 @@ if( !empty($_GET['message_id']) && empty($_POST['message_id']) ) {
 	} else {
 		$sql = "DELETE FROM message WHERE id = $message_id";
 		$res = $mysqli->query($sql);
+    $mysqli->close();
   }
-
-	$mysqli->close();
-
-  if( $res ) {
-	  header("Location: http://localhost/php/rotoeggs_ex3/index.php");
-  }
+  return $res;
 }
+
 
 ?>
 
